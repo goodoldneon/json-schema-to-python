@@ -1,0 +1,37 @@
+{
+  "id": "#root",
+  "type": "object",
+  "properties": {
+    "Person": {
+      "id": "#Person",
+      "type": "object",
+      "properties": {
+        "first_name": {
+          "type": "string",
+          "description": "The person's first name."
+        },
+        "last_name": {
+          "type": "string",
+          "description": "The person's last name."
+        },
+        "age": {
+          "description": "Age in years which must be equal to or greater than zero.",
+          "type": "integer",
+          "minimum": 0
+        }
+      },
+      "required": ["first_name"]
+    },
+    "Car": {
+      "id": "#Car",
+      "type": "object",
+      "properties": {
+        "color": {
+          "type": "string",
+          "description": "The person's first name."
+        }
+      },
+      "required": ["color"]
+    }
+  }
+}
