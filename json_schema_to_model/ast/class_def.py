@@ -22,7 +22,10 @@ def convert_object_schema_to_class_def(
     )
 
     for k, v in schema.properties.items():
-        if v.type == "boolean":
+        if isinstance(v, json_schema.types.Ref):
+            ref_name = v.ref.split("#")[-1]
+            type_value = ast.Name(id=ref_name)
+        elif v.type == "boolean":
             type_value = Name.bool
         elif v.type == "integer":
             type_value = Name.int

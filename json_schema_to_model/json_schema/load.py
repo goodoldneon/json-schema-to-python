@@ -8,6 +8,5 @@ def _load_json_schema(path: str) -> ObjectSchema:
 
 def load_schemas(path: str) -> list[Schema]:
     full_schema = _load_json_schema(path)
-    # breakpoint()
 
     return [schema for schema in full_schema.properties.values()]
