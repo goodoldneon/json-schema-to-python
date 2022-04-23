@@ -4,12 +4,18 @@ from typing import Literal
 import pydantic
 
 
-SchemaType = Literal["boolean", "integer", "object", "null", "number", "string"]
+SchemaType = Literal["array", "boolean", "integer", "object", "null", "number", "string"]
 
 
 class _BaseSchema(pydantic.BaseModel):
     id: str | None = None
     type: SchemaType
+
+
+class ArraySchema(_BaseSchema):
+    id: None = None
+    items: list[Schema]
+    type: Literal["array"]
 
 
 class BooleanSchema(_BaseSchema):
@@ -51,15 +57,12 @@ class Ref(pydantic.BaseModel):
         allow_population_by_field_name = True
 
 
-Schema = Ref | BooleanSchema | IntegerSchema | NullSchema | NumberSchema | ObjectSchema | StringSchema
-
-
-class AllOf(pydantic.BaseModel):
-    allOf: list[Ref]
+Schema = Ref | ArraySchema | BooleanSchema | IntegerSchema | NullSchema | NumberSchema | ObjectSchema | StringSchema
 
 
 class AnyOf(pydantic.BaseModel):
     anyOf: list[Schema]
 
 
+ArraySchema.update_forward_refs()
 ObjectSchema.update_forward_refs()

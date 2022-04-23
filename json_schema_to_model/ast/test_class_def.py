@@ -15,54 +15,98 @@ class Test_create_class_def_from_schema(unittest.TestCase):
         schema = ObjectSchema.parse_obj({
             "id": "#Foo",
             "properties": {
+                "required_boolean": {"type": "boolean"},
                 "boolean": {"type": "boolean"},
-                "optional_boolean": {"type": "boolean"},
+                "required_integer": {"type": "integer"},
                 "integer": {"type": "integer"},
-                "optional_integer": {"type": "integer"},
+                "required_null": {"type": "null"},
                 "null": {"type": "null"},
-                "optional_null": {"type": "null"},
+                "required_number": {"type": "number"},
                 "number": {"type": "number"},
-                "optional_number": {"type": "number"},
+                "required_object": {"type": "object"},
                 "object": {"type": "object"},
-                "optional_object": {"type": "object"},
+                "required_ref": {"$ref": "#Bar"},
                 "ref": {"$ref": "#Bar"},
-                "optional_ref": {"$ref": "#Bar"},
+                "required_string": {"type": "string"},
                 "string": {"type": "string"},
-                "optional_string": {"type": "string"},
             },
             "required": [
-                "boolean",
-                "integer",
-                "null",
-                "number",
-                "object",
-                "ref",
-                "string",
+                "required_boolean",
+                "required_integer",
+                "required_null",
+                "required_number",
+                "required_object",
+                "required_ref",
+                "required_string",
             ],
             "type": "object",
         })
 
         assert self._get_class_str(schema) == textwrap.dedent("""\
             class Foo(TypedDict):
-                boolean: bool
-                optional_boolean: NotRequired[bool]
-                integer: int
-                optional_integer: NotRequired[int]
-                null: None
-                optional_null: NotRequired[None]
-                number: float
-                optional_number: NotRequired[float]
-                object: dict
-                optional_object: NotRequired[dict]
-                ref: Bar
-                optional_ref: NotRequired[Bar]
-                string: str
-                optional_string: NotRequired[str]"""
+                required_boolean: bool
+                boolean: NotRequired[bool]
+                required_integer: int
+                integer: NotRequired[int]
+                required_null: None
+                null: NotRequired[None]
+                required_number: float
+                number: NotRequired[float]
+                required_object: dict
+                object: NotRequired[dict]
+                required_ref: Bar
+                ref: NotRequired[Bar]
+                required_string: str
+                string: NotRequired[str]"""
+        )
+
+    def test_array(self) -> None:
+        schema = ObjectSchema.parse_obj({
+            "id": "#Foo",
+            "properties": {
+                "required_array_of_integers": {
+                    "items": [
+                        {"type": "integer"},
+                    ],
+                    "type": "array",
+                },
+                "array_of_integers": {
+                    "items": [
+                        {"type": "integer"},
+                    ],
+                    "type": "array",
+                },
+                "array_of_integers_and_strings": {
+                    "items": [
+                        {"type": "integer"},
+                        {"type": "string"},
+                    ],
+                    "type": "array",
+                },
+                "array_of_refs": {
+                    "items": [
+                        {"$ref": "#Bar"},
+                    ],
+                    "type": "array",
+                },
+            },
+            "required": ["required_array_of_integers"],
+            "type": "object",
+        })
+
+        assert self._get_class_str(schema) == textwrap.dedent("""\
+            class Foo(TypedDict):
+                required_array_of_integers: list[int]
+                array_of_integers: NotRequired[list[int]]
+                array_of_integers_and_strings: NotRequired[list[Union[int, str]]]
+                array_of_refs: NotRequired[list[Bar]]"""
         )
 
     def test_all_of_keyword(self) -> None:
         """
         The `allOf` keyword should be treated like multiple inheritence
+
+        https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-00#section-10.2.1.1
         """
 
         schema = ObjectSchema.parse_obj({
@@ -80,6 +124,12 @@ class Test_create_class_def_from_schema(unittest.TestCase):
 
 
     def test_any_of_keyword(self) -> None:
+        """
+        The `anyOf` keyword should be treated like a union
+
+        https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-00#section-10.2.1.2
+        """
+
         schema = ObjectSchema.parse_obj({
             "id": "#Person",
             "properties": {
@@ -120,4 +170,40 @@ class Test_create_class_def_from_schema(unittest.TestCase):
                 width: NotRequired[Union[str, float, None]]
                 current_vehicle: Union[Bicycle, Car]
                 dream_vehicle: NotRequired[Union[Bicycle, Car]]"""
+        )
+
+    def test_object_subschema(self) -> None:
+        """
+        Object subschemas become plain dicts. This is because Python doesn't
+        support anonymous TypedDicts.
+        """
+
+        schema = ObjectSchema.parse_obj({
+            "id": "#Foo",
+            "type": "object",
+            "properties": {
+                "object": {
+                    "type": "object",
+                    "properties": {
+                        "baz": {"type": "integer"},
+                    },
+                },
+                "array_of_objects": {
+                    "type": "array",
+                    "items": [
+                        {
+                            "type": "object",
+                            "properties": {
+                                "baz": {"type": "integer"},
+                            },
+                        },
+                    ],
+                },
+            },
+        })
+
+        assert self._get_class_str(schema) == textwrap.dedent("""\
+            class Foo(TypedDict):
+                object: NotRequired[dict]
+                array_of_objects: NotRequired[list[dict]]"""
         )

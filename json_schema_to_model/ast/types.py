@@ -5,15 +5,13 @@ class AstName:
     dict = ast.Name(id='dict')
     float = ast.Name(id='float')
     int = ast.Name(id='int')
+    list = ast.Name(id='list')
     none = ast.Name(id='None')
     NotRequired = ast.Name(id='NotRequired')
     Optional = ast.Name(id='Optional')
     str = ast.Name(id='str')
     TypedDict = ast.Name(id='TypedDict')
     Union = ast.Name(id='Union')
-
-
-
 
 
 def convert_json_schema_type_to_ast_name(json_schema_type: str) -> ast.Name:

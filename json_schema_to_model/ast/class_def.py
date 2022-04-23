@@ -65,6 +65,8 @@ def _get_type_value(
 
     if isinstance(schema, json_schema.types.AnyOf):
         type_value = _get_union(schema.anyOf)
+    elif isinstance(schema, json_schema.types.ArraySchema):
+        type_value = _get_list(schema)
     elif isinstance(schema, json_schema.types.Ref):
         ref_name = schema.ref.split("#")[-1]
         type_value = ast.Name(id=ref_name)
@@ -72,6 +74,26 @@ def _get_type_value(
         type_value = convert_json_schema_type_to_ast_name(schema.type)
 
     return type_value
+
+
+def _get_list(schema: json_schema.types.ArraySchema) -> ast.Subscript:
+    slice: ast.Name | ast.Subscript
+    if len(schema.items) == 0:
+        raise Exception("empty array items")
+    if len(schema.items) == 1:
+        subschema = schema.items[0]
+
+        if isinstance(subschema, json_schema.types.Ref):
+            slice = ast.Name(id=_convert_schema_id_to_name(subschema.ref))
+        else:
+            slice = convert_json_schema_type_to_ast_name(subschema.type)
+    else:
+        slice = _get_union(schema.items)
+
+    return ast.Subscript(
+        slice=slice,
+        value=AstName.list,
+    )
 
 
 def _get_union(schemas: list[json_schema.types.Schema]) -> ast.Subscript:
