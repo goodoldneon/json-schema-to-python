@@ -11,13 +11,73 @@ class Test_create_class_def_from_schema(unittest.TestCase):
         class_def = convert_object_schema_to_class_def(schema)
         return ast.unparse(class_def)
 
-    def test_all_types(self) -> None:
+    def test_basic_types(self) -> None:
+        schema = ObjectSchema.parse_obj({
+            "id": "#Foo",
+            "properties": {
+                "boolean": {"type": "boolean"},
+                "optional_boolean": {"type": "boolean"},
+                "integer": {"type": "integer"},
+                "optional_integer": {"type": "integer"},
+                "null": {"type": "null"},
+                "optional_null": {"type": "null"},
+                "number": {"type": "number"},
+                "optional_number": {"type": "number"},
+                "ref": {"$ref": "#Bar"},
+                "optional_ref": {"$ref": "#Bar"},
+                "string": {"type": "string"},
+                "optional_string": {"type": "string"},
+            },
+            "required": [
+                "boolean",
+                "integer",
+                "null",
+                "number",
+                "ref",
+                "string",
+            ],
+            "type": "object",
+        })
+
+        assert self._get_class_str(schema) == textwrap.dedent("""\
+            class Foo(TypedDict):
+                boolean: bool
+                optional_boolean: NotRequired[bool]
+                integer: int
+                optional_integer: NotRequired[int]
+                null: None
+                optional_null: NotRequired[None]
+                number: float
+                optional_number: NotRequired[float]
+                ref: Bar
+                optional_ref: NotRequired[Bar]
+                string: str
+                optional_string: NotRequired[str]"""
+        )
+
+    def test_all_of_keyword(self) -> None:
+        """
+        The `allOf` keyword should be treated like multiple inheritence
+        """
+
+        schema = ObjectSchema.parse_obj({
+            "id": "#Vehicle",
+            "type": "object",
+            "allOf": [
+                {"$ref": "#Bicycle"}, {"$ref": "#Car"},
+            ],
+        })
+
+        assert self._get_class_str(schema) == textwrap.dedent("""\
+            class Vehicle(Bicycle, Car):
+                pass"""
+        )
+
+
+    def test_any_of_keyword(self) -> None:
         schema = ObjectSchema.parse_obj({
             "id": "#Person",
             "properties": {
-                "age": {"type": "number"},
-                "arms": {"type": "integer"},
-                "first_name": {"type": "string"},
                 "height": {
                     "anyOf": [
                         {"type": "string"},
@@ -25,25 +85,34 @@ class Test_create_class_def_from_schema(unittest.TestCase):
                         {"type": "null"},
                     ],
                 },
-                "is_active": {"type": "boolean"},
-                "last_name": {"type": "string"},
-                "pet": {"$ref": "#Pet"},
-                "vehicle": {
-                    "anyOf": [{"$ref": "#Bicycle"}, {"$ref": "#Car"}],
+                "width": {
+                    "anyOf": [
+                        {"type": "string"},
+                        {"type": "number"},
+                        {"type": "null"},
+                    ],
+                },
+                "current_vehicle": {
+                    "anyOf": [
+                        {"$ref": "#Bicycle"},
+                        {"$ref": "#Car"},
+                    ],
+                },
+                "dream_vehicle": {
+                    "anyOf": [
+                        {"$ref": "#Bicycle"},
+                        {"$ref": "#Car"},
+                    ],
                 },
             },
-            "required": ["first_name"],
+            "required": ["height", "current_vehicle"],
             "type": "object",
         })
 
         assert self._get_class_str(schema) == textwrap.dedent("""\
             class Person(TypedDict):
-                age: NotRequired[float]
-                arms: NotRequired[int]
-                first_name: str
-                height: NotRequired[Union[str, float, None]]
-                is_active: NotRequired[bool]
-                last_name: NotRequired[str]
-                pet: NotRequired[Pet]
-                vehicle: NotRequired[Union[Bicycle, Car]]"""
+                height: Union[str, float, None]
+                width: NotRequired[Union[str, float, None]]
+                current_vehicle: Union[Bicycle, Car]
+                dream_vehicle: NotRequired[Union[Bicycle, Car]]"""
         )

@@ -33,7 +33,8 @@ class NumberSchema(_BaseSchema):
 
 
 class ObjectSchema(_BaseSchema):
-    properties: dict[str, AnyOf | Schema]
+    allOf: list[Ref] | None = None
+    properties: dict[str, AnyOf | Schema] = {}
     required: list[str] = []
     type: Literal["object"]
 
@@ -51,6 +52,10 @@ class Ref(pydantic.BaseModel):
 
 
 Schema = Ref | BooleanSchema | IntegerSchema | NullSchema | NumberSchema | ObjectSchema | StringSchema
+
+
+class AllOf(pydantic.BaseModel):
+    allOf: list[Ref]
 
 
 class AnyOf(pydantic.BaseModel):
