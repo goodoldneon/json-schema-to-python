@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal
+from typing import Literal, TypeGuard
 
 import pydantic
 
@@ -24,7 +24,7 @@ class BooleanSchema(_BaseSchema):
 
 
 class IntegerSchema(_BaseSchema):
-    id: None = None
+    enum: list[int] | None = None
     type: Literal["integer"]
 
 
@@ -34,7 +34,7 @@ class NullSchema(_BaseSchema):
 
 
 class NumberSchema(_BaseSchema):
-    id: None = None
+    enum: list[float] | None = None
     type: Literal["number"]
 
 
@@ -46,7 +46,7 @@ class ObjectSchema(_BaseSchema):
 
 
 class StringSchema(_BaseSchema):
-    id: None = None
+    enum: list[str] | None = None
     type: Literal["string"]
 
 
@@ -58,6 +58,10 @@ class Ref(pydantic.BaseModel):
 
 
 Schema = Ref | ArraySchema | BooleanSchema | IntegerSchema | NullSchema | NumberSchema | ObjectSchema | StringSchema
+EnumableSchema = IntegerSchema | NumberSchema | StringSchema
+
+def is_enumable_schema(value: Schema) -> TypeGuard[EnumableSchema]:
+    return getattr(value, "enum", None) is not None
 
 
 class AnyOf(pydantic.BaseModel):

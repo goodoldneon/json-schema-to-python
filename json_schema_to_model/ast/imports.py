@@ -9,6 +9,12 @@ def create_imports() -> list[ast.ImportFrom]:
     even if they aren't used.
     """
 
+    enum_import = ast.ImportFrom(
+        level=0,
+        module="enum",
+        names=[AstName.Enum],
+    )
+
     typing_import = ast.ImportFrom(
         level=0,
         module="typing",
@@ -24,4 +30,4 @@ def create_imports() -> list[ast.ImportFrom]:
         names=[AstName.NotRequired],
     )
 
-    return [typing_import, typing_extensions_import]
+    return [enum_import, typing_import, typing_extensions_import]

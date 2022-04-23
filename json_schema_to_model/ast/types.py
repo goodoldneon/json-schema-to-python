@@ -3,9 +3,11 @@ import ast
 class AstName:
     bool = ast.Name(id='bool')
     dict = ast.Name(id='dict')
+    Enum = ast.Name(id='Enum')
     float = ast.Name(id='float')
     int = ast.Name(id='int')
     list = ast.Name(id='list')
+    Literal = ast.Name(id='Literal')
     none = ast.Name(id='None')
     NotRequired = ast.Name(id='NotRequired')
     Optional = ast.Name(id='Optional')

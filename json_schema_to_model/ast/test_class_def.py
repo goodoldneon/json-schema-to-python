@@ -207,3 +207,34 @@ class Test_create_class_def(unittest.TestCase):
                 object: NotRequired[dict]
                 array_of_objects: NotRequired[list[dict]]"""
         )
+
+    def test_inline_enum(self) -> None:
+        """
+        Inline enums become literal unions
+        """
+
+        schema = ObjectSchema.parse_obj({
+            "id": "#Foo",
+            "type": "object",
+            "properties": {
+                "integers": {
+                    "type": "integer",
+                    "enum": [1, 2],
+                },
+                "numbers": {
+                    "type": "number",
+                    "enum": [1.1, 1.2],
+                },
+                "strings": {
+                    "type": "string",
+                    "enum": ["a", "b"],
+                },
+            },
+        })
+
+        assert self._get_class_str(schema) == textwrap.dedent("""\
+            class Foo(TypedDict):
+                integers: NotRequired[Literal[1, 2]]
+                numbers: NotRequired[Literal[1.1, 1.2]]
+                strings: NotRequired[Literal['a', 'b']]"""
+        )

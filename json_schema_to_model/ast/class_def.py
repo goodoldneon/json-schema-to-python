@@ -102,7 +102,10 @@ def _get_type_value(
     elif isinstance(schema, json_schema.types.Ref):
         type_value = ast.Name(id=convert_schema_id_to_name(schema.ref))
     else:
-        type_value = convert_json_schema_type_to_ast_name(schema.type)
+        if json_schema.types.is_enumable_schema(schema):
+            type_value = _create_literal_union(schema)
+        else:
+            type_value = convert_json_schema_type_to_ast_name(schema.type)
 
     return type_value
 
@@ -128,6 +131,25 @@ def _create_list(schema: json_schema.types.ArraySchema) -> ast.Subscript:
     return ast.Subscript(
         slice=slice,
         value=AstName.list,
+    )
+
+
+def _create_literal_union(
+    schema: json_schema.types.EnumableSchema,
+) -> ast.Subscript:
+    """
+    Create a `Literal` AST object
+    """
+
+    assert schema.enum is not None
+
+    dims: list[ast.Constant] = []
+    for member in schema.enum:
+        dims.append(ast.Constant(value=member))
+
+    return ast.Subscript(
+        slice=ast.Tuple(dims=dims),
+        value=AstName.Literal,
     )
 
 
