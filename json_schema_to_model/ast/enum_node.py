@@ -5,7 +5,7 @@ from json_schema_to_model.json_schema.utils import convert_schema_id_to_name
 from .types import AstName
 
 
-def create_enum_class_def(
+def create_enum_node(
     schema: json_schema.types.EnumableSchema,
 ) -> ast.ClassDef:
     assert schema.enum is not None

@@ -1,1 +1,1 @@
-from .module_def import create_module
+from .module_node import create_module_node

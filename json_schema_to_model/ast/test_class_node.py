@@ -3,12 +3,12 @@ import textwrap
 import unittest
 
 from json_schema_to_model.json_schema.types import ObjectSchema
-from .class_def import create_class_def
+from .class_node import create_class_node
 
 
 class Test_create_class_def(unittest.TestCase):
     def _get_class_str(self, schema: ObjectSchema) -> str:
-        class_def = create_class_def(schema)
+        class_def = create_class_node(schema)
         return ast.unparse(class_def)
 
     def test_basic_types(self) -> None:

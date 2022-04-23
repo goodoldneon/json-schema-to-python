@@ -3,7 +3,7 @@ import ast
 from .types import AstName
 
 
-def create_imports() -> list[ast.ImportFrom]:
+def create_import_nodes() -> list[ast.ImportFrom]:
     """
     Create import ASTs. These are static and will appear in the outputted file
     even if they aren't used.

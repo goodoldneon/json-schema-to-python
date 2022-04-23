@@ -3,12 +3,12 @@ import textwrap
 import unittest
 
 from json_schema_to_model.json_schema.types import EnumableSchema, StringSchema
-from .enum_def import create_enum_class_def
+from .enum_node import create_enum_node
 
 
 class Test_create_enum_class_def(unittest.TestCase):
     def _get_class_str(self, schema: EnumableSchema) -> str:
-        class_def = create_enum_class_def(schema)
+        class_def = create_enum_node(schema)
         return ast.unparse(class_def)
 
     def test_string_enum(self) -> None:

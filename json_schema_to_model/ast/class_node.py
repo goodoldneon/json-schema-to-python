@@ -6,7 +6,7 @@ from .attribute_node import get_attribute_node
 from .types import AstName
 
 
-def create_class_def(
+def create_class_node(
     schema: json_schema.types.ObjectSchema,
 ) -> ast.ClassDef:
     """
