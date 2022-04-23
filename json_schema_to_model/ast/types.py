@@ -2,6 +2,7 @@ import ast
 
 class AstName:
     bool = ast.Name(id='bool')
+    dict = ast.Name(id='dict')
     float = ast.Name(id='float')
     int = ast.Name(id='int')
     none = ast.Name(id='None')
@@ -18,6 +19,7 @@ class AstName:
 def convert_json_schema_type_to_ast_name(json_schema_type: str) -> ast.Name:
     _json_schema_type_to_ast_name = {
         "boolean": AstName.bool,
+        "object": AstName.dict,
         "integer": AstName.int,
         "null": AstName.none,
         "number": AstName.float,

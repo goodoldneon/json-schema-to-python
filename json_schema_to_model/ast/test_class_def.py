@@ -23,6 +23,8 @@ class Test_create_class_def_from_schema(unittest.TestCase):
                 "optional_null": {"type": "null"},
                 "number": {"type": "number"},
                 "optional_number": {"type": "number"},
+                "object": {"type": "object"},
+                "optional_object": {"type": "object"},
                 "ref": {"$ref": "#Bar"},
                 "optional_ref": {"$ref": "#Bar"},
                 "string": {"type": "string"},
@@ -33,6 +35,7 @@ class Test_create_class_def_from_schema(unittest.TestCase):
                 "integer",
                 "null",
                 "number",
+                "object",
                 "ref",
                 "string",
             ],
@@ -49,6 +52,8 @@ class Test_create_class_def_from_schema(unittest.TestCase):
                 optional_null: NotRequired[None]
                 number: float
                 optional_number: NotRequired[float]
+                object: dict
+                optional_object: NotRequired[dict]
                 ref: Bar
                 optional_ref: NotRequired[Bar]
                 string: str
