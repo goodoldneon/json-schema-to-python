@@ -1,7 +1,7 @@
 import ast
 from json_schema_to_model.json_schema.types import ObjectSchema, Schema
 from .class_def import create_class_def
-from .imports import create_imports
+from .import_def import create_imports
 
 
 def create_module(model_schemas: list[Schema]) -> ast.Module:
