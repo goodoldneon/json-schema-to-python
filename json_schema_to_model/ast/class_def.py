@@ -1,32 +1,22 @@
 import ast
 
 from json_schema_to_model import json_schema
+from json_schema_to_model.json_schema.utils import convert_schema_id_to_name
 from .types import AstName, convert_json_schema_type_to_ast_name
 
 
-def convert_object_schema_to_class_def(
+def create_class_def(
     schema: json_schema.types.ObjectSchema,
 ) -> ast.ClassDef:
     """
-    Convert a schema object into an AST class definition
+    Create a class definition AST object
     """
 
     assert schema.id is not None
-    name = schema.id.split("#")[-1]
+    name = convert_schema_id_to_name(schema.id)
 
     if schema.allOf:
-        bases = [
-            ast.Name(id=_convert_schema_id_to_name(s.ref))
-            for s in schema.allOf
-        ]
-
-        return ast.ClassDef(
-            bases=bases,
-            body=[ast.Pass()],
-            decorator_list=[],
-            keywords=[],
-            name=name,
-        )
+        return _create_class_def_using_all_of(schema)
 
     class_def = ast.ClassDef(
         bases=[AstName.TypedDict],
@@ -39,8 +29,9 @@ def convert_object_schema_to_class_def(
     for k, v in schema.properties.items():
         type_value = _get_type_value(v)
 
+        annotation: ast.Name | ast.Subscript
         if k in schema.required:
-            annotation: ast.Name | ast.Subscript = type_value
+            annotation = type_value
         else:
             annotation = ast.Subscript(
                 slice=type_value,
@@ -50,12 +41,53 @@ def convert_object_schema_to_class_def(
         prop_def = ast.AnnAssign(
             annotation=annotation,
             simple=1,
-            target=ast.Name(id=k, ctx=ast.Load()),
+            target=ast.Name(id=k),
         )
 
         class_def.body.append(prop_def)
 
     return class_def
+
+
+def _create_class_def_using_all_of(
+    schema: json_schema.types.ObjectSchema,
+) -> ast.ClassDef:
+    """
+    If an object schema uses the `allOf` keyword, then use multiple inheritence
+    for all of the refs in `allOf`.
+
+    This solution is not fully JSON Schema compliant. For example, it won't
+    support schemas that specify both `allOf` and `required`:
+
+    ```
+    {
+        "id": "#Foo",
+        "type": "object",
+        "allOf": [{"$ref": "Bar"}, {"$ref": "Baz"}],
+        "required": ["name"]
+    }
+    ```
+
+    The only way to support using both `allOf` and `required` is to stop using
+    multiple inheritence and merge the schemas before creating the ClassDef.
+    This can be done but would take some work.
+    """
+
+    assert schema.allOf is not None
+    assert schema.id is not None
+
+    bases = [
+        ast.Name(id=convert_schema_id_to_name(s.ref))
+        for s in schema.allOf
+    ]
+
+    return ast.ClassDef(
+        bases=bases,
+        body=[ast.Pass()],
+        decorator_list=[],
+        keywords=[],
+        name=convert_schema_id_to_name(schema.id),
+    )
 
 
 def _get_type_value(
@@ -64,19 +96,22 @@ def _get_type_value(
     type_value: ast.Name | ast.Subscript
 
     if isinstance(schema, json_schema.types.AnyOf):
-        type_value = _get_union(schema.anyOf)
+        type_value = _create_union(schema.anyOf)
     elif isinstance(schema, json_schema.types.ArraySchema):
-        type_value = _get_list(schema)
+        type_value = _create_list(schema)
     elif isinstance(schema, json_schema.types.Ref):
-        ref_name = schema.ref.split("#")[-1]
-        type_value = ast.Name(id=ref_name)
+        type_value = ast.Name(id=convert_schema_id_to_name(schema.ref))
     else:
         type_value = convert_json_schema_type_to_ast_name(schema.type)
 
     return type_value
 
 
-def _get_list(schema: json_schema.types.ArraySchema) -> ast.Subscript:
+def _create_list(schema: json_schema.types.ArraySchema) -> ast.Subscript:
+    """
+    Create a `list` AST object
+    """
+
     slice: ast.Name | ast.Subscript
     if len(schema.items) == 0:
         raise Exception("empty array items")
@@ -84,11 +119,11 @@ def _get_list(schema: json_schema.types.ArraySchema) -> ast.Subscript:
         subschema = schema.items[0]
 
         if isinstance(subschema, json_schema.types.Ref):
-            slice = ast.Name(id=_convert_schema_id_to_name(subschema.ref))
+            slice = ast.Name(id=convert_schema_id_to_name(subschema.ref))
         else:
             slice = convert_json_schema_type_to_ast_name(subschema.type)
     else:
-        slice = _get_union(schema.items)
+        slice = _create_union(schema.items)
 
     return ast.Subscript(
         slice=slice,
@@ -96,21 +131,19 @@ def _get_list(schema: json_schema.types.ArraySchema) -> ast.Subscript:
     )
 
 
-def _get_union(schemas: list[json_schema.types.Schema]) -> ast.Subscript:
+def _create_union(schemas: list[json_schema.types.Schema]) -> ast.Subscript:
+    """
+    Create a `Union` AST object
+    """
+
     dims: list[ast.Name] = []
     for schema in schemas:
         if isinstance(schema, json_schema.types.Ref):
-            dims.append(ast.Name(id=_convert_schema_id_to_name(schema.ref)))
+            dims.append(ast.Name(id=convert_schema_id_to_name(schema.ref)))
         else:
             dims.append(convert_json_schema_type_to_ast_name(schema.type))
 
     return ast.Subscript(
         slice=ast.Tuple(dims=dims),
-        value=ast.Name(
-            id="Union",
-        ),
+        value=AstName.Union,
     )
-
-
-def _convert_schema_id_to_name(value: str) -> str:
-    return value.split("#")[-1]
