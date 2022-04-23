@@ -1,12 +1,13 @@
 import json
-from .types import AnyOf, ObjectSchema, Schema
+from .types import AnyOf, RootSchema, Schema
 
-def _load_json_schema(path: str) -> ObjectSchema:
+
+def _load_json_schema(path: str) -> RootSchema:
     with open(path) as f:
-        return ObjectSchema.parse_obj(json.loads(f.read()))
+        return RootSchema.parse_obj(json.loads(f.read()))
 
 
-def load_schemas(path: str) -> list[Schema]:
+def load_model_schemas(path: str) -> list[Schema]:
     full_schema = _load_json_schema(path)
 
     schemas: list[Schema] = []

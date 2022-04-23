@@ -45,6 +45,10 @@ class ObjectSchema(_BaseSchema):
     type: Literal["object"]
 
 
+class RootSchema(pydantic.BaseModel):
+    properties: dict[str, ObjectSchema]
+
+
 class StringSchema(_BaseSchema):
     enum: list[str] | None = None
     type: Literal["string"]
