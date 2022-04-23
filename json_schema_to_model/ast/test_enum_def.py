@@ -17,13 +17,16 @@ class Test_create_enum_class_def(unittest.TestCase):
         support anonymous TypedDicts.
         """
 
-        schema = StringSchema.parse_obj({
-            "id": "#Foo",
-            "type": "string",
-            "enum": ["a", "b"],
-        })
+        schema = StringSchema.parse_obj(
+            {
+                "id": "#Foo",
+                "type": "string",
+                "enum": ["a", "b"],
+            }
+        )
 
-        assert self._get_class_str(schema) == textwrap.dedent("""\
+        assert self._get_class_str(schema) == textwrap.dedent(
+            """\
             class Foo(Enum):
                 a = 'a'
                 b = 'b'"""

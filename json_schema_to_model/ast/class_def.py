@@ -77,8 +77,7 @@ def _create_class_def_using_all_of(
     assert schema.id is not None
 
     bases = [
-        ast.Name(id=convert_schema_id_to_name(s.ref))
-        for s in schema.allOf
+        ast.Name(id=convert_schema_id_to_name(s.ref)) for s in schema.allOf.__root__
     ]
 
     return ast.ClassDef(
@@ -91,14 +90,16 @@ def _create_class_def_using_all_of(
 
 
 def _get_type_value(
-    schema: json_schema.types.AnyOf | json_schema.types.Schema,
+    schema: json_schema.types.Schema,
 ) -> ast.Name | ast.Subscript:
     type_value: ast.Name | ast.Subscript
 
-    if isinstance(schema, json_schema.types.AnyOf):
-        type_value = _create_union(schema.anyOf)
-    elif isinstance(schema, json_schema.types.ArraySchema):
+    if isinstance(schema, json_schema.types.ArraySchema):
         type_value = _create_list(schema)
+    elif isinstance(schema, json_schema.types.AllOfSchema):
+        raise NotImplementedError()
+    elif isinstance(schema, json_schema.types.AnyOfSchema):
+        type_value = _create_union(schema.anyOf.__root__)
     elif isinstance(schema, json_schema.types.Ref):
         type_value = ast.Name(id=convert_schema_id_to_name(schema.ref))
     else:
@@ -121,7 +122,11 @@ def _create_list(schema: json_schema.types.ArraySchema) -> ast.Subscript:
     if len(schema.items) == 1:
         subschema = schema.items[0]
 
-        if isinstance(subschema, json_schema.types.Ref):
+        if isinstance(subschema, json_schema.types.AllOfSchema):
+            raise NotImplementedError()
+        elif isinstance(subschema, json_schema.types.AnyOfSchema):
+            raise NotImplementedError()
+        elif isinstance(subschema, json_schema.types.Ref):
             slice = ast.Name(id=convert_schema_id_to_name(subschema.ref))
         else:
             slice = convert_json_schema_type_to_ast_name(subschema.type)
@@ -160,7 +165,11 @@ def _create_union(schemas: list[json_schema.types.Schema]) -> ast.Subscript:
 
     dims: list[ast.Name] = []
     for schema in schemas:
-        if isinstance(schema, json_schema.types.Ref):
+        if isinstance(schema, json_schema.types.AllOfSchema):
+            raise NotImplementedError()
+        elif isinstance(schema, json_schema.types.AnyOfSchema):
+            raise NotImplementedError()
+        elif isinstance(schema, json_schema.types.Ref):
             dims.append(ast.Name(id=convert_schema_id_to_name(schema.ref)))
         else:
             dims.append(convert_json_schema_type_to_ast_name(schema.type))
