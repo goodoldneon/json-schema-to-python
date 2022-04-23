@@ -1,13 +1,14 @@
 import ast
 
 from json_schema_to_model import json_schema
-from .types import AstName
+from json_schema_to_model.json_schema.types import Ref
+from .types import AstName, convert_json_schema_type_to_ast_name
 
 def convert_object_schema_to_class_def(
     schema: json_schema.types.ObjectSchema,
 ) -> ast.ClassDef:
     """
-    Convert a
+    Convert a schema object into an AST class definition
     """
 
     assert schema.id is not None
@@ -57,10 +58,12 @@ def _get_type_value(
 
 
 def _get_union(schemas: list[json_schema.types.Schema]) -> ast.Subscript:
-    dims = [
-        ast.Name(id=_convert_schema_id_to_name(schema.ref))
-        for schema in schemas
-    ]
+    dims: list[ast.Name] = []
+    for schema in schemas:
+        if isinstance(schema, json_schema.types.Ref):
+            dims.append(ast.Name(id=_convert_schema_id_to_name(schema.ref)))
+        else:
+            dims.append(convert_json_schema_type_to_ast_name(schema.type))
 
     return ast.Subscript(
         slice=ast.Tuple(dims=dims),

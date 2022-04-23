@@ -4,7 +4,7 @@ from typing import Literal
 import pydantic
 
 
-SchemaType = Literal["boolean", "integer", "object", "number", "string"]
+SchemaType = Literal["boolean", "integer", "object", "null", "number", "string"]
 
 
 class _BaseSchema(pydantic.BaseModel):
@@ -22,15 +22,21 @@ class IntegerSchema(_BaseSchema):
     type: Literal["integer"]
 
 
-class ObjectSchema(_BaseSchema):
-    properties: dict[str, AnyOf | Schema]
-    required: list[str] = []
-    type: Literal["object"]
+class NullSchema(_BaseSchema):
+    id: None = None
+    type: Literal["null"]
 
 
 class NumberSchema(_BaseSchema):
     id: None = None
     type: Literal["number"]
+
+
+class ObjectSchema(_BaseSchema):
+    properties: dict[str, AnyOf | Schema]
+    required: list[str] = []
+    type: Literal["object"]
+
 
 class StringSchema(_BaseSchema):
     id: None = None
@@ -44,7 +50,7 @@ class Ref(pydantic.BaseModel):
         allow_population_by_field_name = True
 
 
-Schema = Ref | BooleanSchema | IntegerSchema | ObjectSchema | NumberSchema | StringSchema
+Schema = Ref | BooleanSchema | IntegerSchema | NullSchema | NumberSchema | ObjectSchema | StringSchema
 
 
 class AnyOf(pydantic.BaseModel):
