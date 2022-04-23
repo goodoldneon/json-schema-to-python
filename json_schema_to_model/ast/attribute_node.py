@@ -43,6 +43,8 @@ def _get_type_value(
         raise NotImplementedError()
     elif isinstance(schema, json_schema.types.AnyOfSchema):
         type_value = create_union_node(schema.anyOf.__root__)
+    elif isinstance(schema, json_schema.types.MultiTypeSchema):
+        type_value = create_union_node(schema.type)
     elif isinstance(schema, json_schema.types.Ref):
         type_value = ast.Name(id=convert_schema_id_to_name(schema.ref))
     else:

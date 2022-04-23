@@ -1,5 +1,5 @@
 from __future__ import annotations
-from typing import Literal, TypeGuard
+from typing import Any, get_args, Literal, Type, TypeGuard, TypeVar
 
 import pydantic
 
@@ -11,7 +11,7 @@ SchemaType = Literal[
 
 class _BaseSchema(pydantic.BaseModel):
     id: str | None = None
-    type: SchemaType | None
+    type: SchemaType | list[SchemaType] | None
 
 
 class AllOfSchema(_BaseSchema):
@@ -38,6 +38,10 @@ class BooleanSchema(_BaseSchema):
 class IntegerSchema(_BaseSchema):
     enum: list[int] | None = None
     type: Literal["integer"]
+
+
+class MultiTypeSchema(_BaseSchema):
+    type: list[SchemaType]
 
 
 class NullSchema(_BaseSchema):
@@ -80,6 +84,7 @@ Schema = (
     | ArraySchema
     | BooleanSchema
     | IntegerSchema
+    | MultiTypeSchema
     | NullSchema
     | NumberSchema
     | ObjectSchema
@@ -90,6 +95,36 @@ EnumableSchema = IntegerSchema | NumberSchema | StringSchema
 
 def is_enumable_schema(value: Schema) -> TypeGuard[EnumableSchema]:
     return getattr(value, "enum", None) is not None
+
+
+def is_schema(value: Any) -> TypeGuard[Schema]:
+    schema_classes = get_args(Schema)
+
+    for schema_class in schema_classes:
+        if isinstance(value, schema_class):
+            return True
+
+    return False
+
+
+def is_list_of_schemas(
+    value: list,
+) -> TypeGuard[list[Schema]]:
+    for item in value:
+        if is_schema(item) is False:
+            return False
+
+    return True
+
+
+def is_list_of_schema_types(
+    value: list,
+) -> TypeGuard[list[SchemaType]]:
+    for item in value:
+        if item not in get_args(SchemaType):
+            return False
+
+    return True
 
 
 class AllOf(pydantic.BaseModel):

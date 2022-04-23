@@ -87,6 +87,19 @@ class Test_create_class_def(unittest.TestCase):
                         ],
                         "type": "array",
                     },
+                    "array_of_multi_type": {
+                        "items": [
+                            {"type": ["number", "null"]},
+                        ],
+                        "type": "array",
+                    },
+                    "array_of_integers_and_multi_type": {
+                        "items": [
+                            {"type": "integer"},
+                            {"type": ["number", "null"]},
+                        ],
+                        "type": "array",
+                    },
                     "array_of_refs": {
                         "items": [
                             {"$ref": "#Bar"},
@@ -105,6 +118,8 @@ class Test_create_class_def(unittest.TestCase):
                 required_array_of_integers: list[int]
                 array_of_integers: NotRequired[list[int]]
                 array_of_integers_and_strings: NotRequired[list[Union[int, str]]]
+                array_of_multi_type: NotRequired[list[Union[float, None]]]
+                array_of_integers_and_multi_type: NotRequired[list[Union[int, float, None]]]
                 array_of_refs: NotRequired[list[Bar]]"""
         )
 
@@ -255,4 +270,23 @@ class Test_create_class_def(unittest.TestCase):
                 integers: NotRequired[Literal[1, 2]]
                 numbers: NotRequired[Literal[1.1, 1.2]]
                 strings: NotRequired[Literal['a', 'b']]"""
+        )
+
+    def test_multi_type(self) -> None:
+        """
+        `type` is an array
+        """
+
+        schema = ObjectSchema.parse_obj(
+            {
+                "id": "#Foo",
+                "type": "object",
+                "properties": {"a": {"type": ["integer", "string"]}},
+            }
+        )
+
+        assert self._get_class_str(schema) == textwrap.dedent(
+            """\
+            class Foo(TypedDict):
+                a: NotRequired[Union[int, str]]"""
         )
