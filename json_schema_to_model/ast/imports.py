@@ -1,6 +1,6 @@
 import ast
 
-from .types import Name
+from .types import AstName
 
 
 def create_imports() -> list[ast.ImportFrom]:
@@ -8,15 +8,16 @@ def create_imports() -> list[ast.ImportFrom]:
         level=0,
         module="typing",
         names=[
-            Name.Optional,
-            Name.TypedDict,
+            AstName.Optional,
+            AstName.TypedDict,
+            AstName.Union,
         ],
     )
 
     typing_extensions_import = ast.ImportFrom(
         level=0,
         module="typing_extensions",
-        names=[Name.NotRequired],
+        names=[AstName.NotRequired],
     )
 
     return [typing_import, typing_extensions_import]

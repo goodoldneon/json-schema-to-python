@@ -1,7 +1,7 @@
 import ast
 
 from json_schema_to_model import json_schema
-from .types import Name
+from .types import AstName
 
 def convert_object_schema_to_class_def(
     schema: json_schema.types.ObjectSchema,
@@ -14,7 +14,7 @@ def convert_object_schema_to_class_def(
     name = schema.id.split("#")[-1]
 
     class_def = ast.ClassDef(
-        bases=[Name.TypedDict],
+        bases=[AstName.TypedDict],
         body=[],
         decorator_list=[],
         keywords=[],
@@ -22,24 +22,14 @@ def convert_object_schema_to_class_def(
     )
 
     for k, v in schema.properties.items():
-        if isinstance(v, json_schema.types.Ref):
-            ref_name = v.ref.split("#")[-1]
-            type_value = ast.Name(id=ref_name)
-        elif v.type == "boolean":
-            type_value = Name.bool
-        elif v.type == "integer":
-            type_value = Name.int
-        elif v.type == "string":
-            type_value = Name.str
-        else:
-            raise Exception(f"unexpected property type {v.type}")
+        type_value = _get_type_value(v)
 
         if k in schema.required:
             annotation: ast.Name | ast.Subscript = type_value
         else:
             annotation = ast.Subscript(
                 slice=type_value,
-                value=Name.NotRequired,
+                value=AstName.NotRequired,
             )
 
         prop_def = ast.AnnAssign(
@@ -51,3 +41,53 @@ def convert_object_schema_to_class_def(
         class_def.body.append(prop_def)
 
     return class_def
+
+
+def _get_type_value(
+    schema: json_schema.types.AnyOf | json_schema.types.Schema,
+) -> ast.Name | ast.Subscript:
+    type_value: ast.Name | ast.Subscript
+
+    if isinstance(schema, json_schema.types.AnyOf):
+        type_value = _get_union(schema.anyOf)
+    else:
+        type_value = _get_type_value_for_single_schema(schema)
+
+    return type_value
+
+
+def _get_union(schemas: list[json_schema.types.Schema]) -> ast.Subscript:
+    dims = [
+        ast.Name(id=_convert_schema_id_to_name(schema.ref))
+        for schema in schemas
+    ]
+
+    return ast.Subscript(
+        slice=ast.Tuple(dims=dims),
+        value=ast.Name(
+            id="Union",
+        ),
+    )
+
+
+def _get_type_value_for_single_schema(
+    schema: json_schema.types.Schema,
+) -> ast.Name:
+    if isinstance(schema, json_schema.types.Ref):
+        ref_name = schema.ref.split("#")[-1]
+        type_value = ast.Name(id=ref_name)
+    elif schema.type == "boolean":
+        type_value = AstName.bool
+    elif schema.type == "integer":
+        type_value = AstName.int
+    elif schema.type == "number":
+        type_value = AstName.float
+    elif schema.type == "string":
+        type_value = AstName.str
+    else:
+        raise Exception(f"unexpected property type {schema.type}")
+
+    return type_value
+
+def _convert_schema_id_to_name(value: str) -> str:
+    return value.split("#")[-1]

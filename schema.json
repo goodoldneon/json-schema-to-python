@@ -7,31 +7,43 @@
       "type": "object",
       "properties": {
         "first_name": {
-          "type": "string",
-          "description": "The person's first name."
+          "type": "string"
         },
         "last_name": {
-          "type": "string",
-          "description": "The person's last name."
+          "type": "string"
         },
         "age": {
-          "description": "Age in years which must be equal to or greater than zero.",
-          "type": "integer",
-          "minimum": 0
+          "type": "integer"
         },
-        "car": {
-          "$ref": "#Car"
+        "vehicle": {
+          "anyOf": [
+            {
+              "$ref": "#Bike"
+            },
+            {
+              "$ref": "#Car"
+            }
+          ]
         }
       },
-      "required": ["first_name"]
+      "required": ["first_name", "vehicle"]
+    },
+    "Bike": {
+      "id": "#Bike",
+      "type": "object",
+      "properties": {
+        "frame": {
+          "type": "string"
+        }
+      },
+      "required": ["frame"]
     },
     "Car": {
       "id": "#Car",
       "type": "object",
       "properties": {
         "color": {
-          "type": "string",
-          "description": "The person's first name."
+          "type": "string"
         }
       },
       "required": ["color"]
