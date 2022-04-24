@@ -73,7 +73,7 @@ def create_union_node(
                 """
 
                 raise NotImplementedError("nested anyOf")
-            elif isinstance(schema, json_schema.types.RefSchema):
+            elif isinstance(schema, json_schema.types.TypelessSchema):
                 """
                 Example:
 

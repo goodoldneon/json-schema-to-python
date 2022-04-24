@@ -5,7 +5,6 @@ from .types import (
     AnyOf,
     AnyOfSchema,
     ObjectSchema,
-    RefSchema,
     Schema,
     get_schema_from_type,
 )
@@ -39,9 +38,9 @@ def _get_schema_intersection(a: Schema, b: Schema) -> Schema:
     """
 
     # Unable to resolve refs in this function
-    if isinstance(a, RefSchema):
+    if a.ref is not None:
         raise Exception("cannot find intersection for a ref")
-    if isinstance(b, RefSchema):
+    if b.ref is not None:
         raise Exception("cannot find intersection for a ref")
 
     if isinstance(a, AnyOfSchema):

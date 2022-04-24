@@ -77,7 +77,7 @@ def _create_class_node_using_all_of(
     subschemas_to_merge: list[json_schema.types.ObjectSchema] = []
 
     for subschema in subschemas:
-        if isinstance(subschema, json_schema.types.RefSchema):
+        if isinstance(subschema, json_schema.types.TypelessSchema):
             bases.append(ast.Name(id=subschema.get_schema_name()))
         elif isinstance(subschema, json_schema.types.ObjectSchema):
             subschemas_to_merge.append(subschema)

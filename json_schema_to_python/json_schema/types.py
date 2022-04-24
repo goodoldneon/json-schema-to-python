@@ -11,6 +11,7 @@ SchemaType = Literal[
 
 class _BaseSchema(base.BaseModel):
     id: str | None = None
+    ref: RefValue | None = base.Field(alias="$ref", default=None)
     type: SchemaType | list[SchemaType] | None = None
 
     def get_schema_name(self) -> str:
@@ -63,7 +64,6 @@ class NumberSchema(_BaseSchema):
 class ObjectSchema(_BaseSchema):
     allOf: AllOf | None = None
     properties: dict[str, Schema] = {}
-    ref: RefValue | None = base.Field(alias="$ref", default=None)
     required: list[str] = []
     type: Literal["object"]
 
@@ -77,7 +77,7 @@ class StringSchema(_BaseSchema):
     type: Literal["string"]
 
 
-class RefSchema(base.BaseModel):
+class TypelessSchema(base.BaseModel):
     ref: RefValue = base.Field(alias="$ref")
     type: None = None
 
@@ -89,9 +89,8 @@ class RefSchema(base.BaseModel):
 
 
 Schema = (
-    RefSchema
+    AllOfSchema
     | AnyOfSchema
-    | AllOfSchema
     | ArraySchema
     | BooleanSchema
     | IntegerSchema
@@ -100,6 +99,7 @@ Schema = (
     | NumberSchema
     | ObjectSchema
     | StringSchema
+    | TypelessSchema
 )
 EnumableSchema = IntegerSchema | NumberSchema | StringSchema
 
@@ -168,16 +168,6 @@ def is_list_of_schemas(
     return True
 
 
-def is_list_of_ref_schemas(
-    value: list,
-) -> TypeGuard[list[RefSchema]]:
-    for item in value:
-        if isinstance(item, RefSchema) is False:
-            return False
-
-    return True
-
-
 def is_list_of_schema_types(
     value: list,
 ) -> TypeGuard[list[SchemaType]]:
@@ -189,7 +179,7 @@ def is_list_of_schema_types(
 
 
 class AllOf(base.BaseModel):
-    __root__: list[ObjectSchema | RefSchema]
+    __root__: list[ObjectSchema | TypelessSchema]
 
 
 class AnyOf(base.BaseModel):
@@ -210,10 +200,11 @@ AnyOfSchema.update_forward_refs()
 ArraySchema.update_forward_refs()
 BooleanSchema.update_forward_refs()
 IntegerSchema.update_forward_refs()
+MultiTypeSchema.update_forward_refs()
 NullSchema.update_forward_refs()
 NumberSchema.update_forward_refs()
 ObjectSchema.update_forward_refs()
-RefSchema.update_forward_refs()
 RootSchema.update_forward_refs()
 StringSchema.update_forward_refs()
+TypelessSchema.update_forward_refs()
 _BaseSchema.update_forward_refs()
