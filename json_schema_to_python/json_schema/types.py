@@ -150,7 +150,7 @@ def is_list_of_object_schemas(
     """
 
     for item in value:
-        if is_schema(item) is False:
+        if isinstance(item, ObjectSchema) is False:
             return False
 
     return True
@@ -161,6 +161,16 @@ def is_list_of_schemas(
 ) -> TypeGuard[list[Schema]]:
     for item in value:
         if is_schema(item) is False:
+            return False
+
+    return True
+
+
+def is_list_of_refs(
+    value: list,
+) -> TypeGuard[list[Ref]]:
+    for item in value:
+        if isinstance(item, Ref) is False:
             return False
 
     return True
@@ -177,7 +187,7 @@ def is_list_of_schema_types(
 
 
 class AllOf(base.BaseModel):
-    __root__: list[Ref]
+    __root__: list[ObjectSchema | Ref]
 
 
 class AnyOf(base.BaseModel):

@@ -11,6 +11,16 @@ class Test_create_class_def(unittest.TestCase):
         class_def = create_class_node(schema)
         return ast.unparse(class_def)
 
+    def assert_class_str(self, schema: ObjectSchema, expectation: str):
+        # Dedent until at least 1 line is unindented
+        expectation = textwrap.dedent(expectation)
+
+        # Remove leading and trailing newlines
+        expectation = expectation.strip()
+
+        class_def = create_class_node(schema)
+        assert ast.unparse(class_def) == expectation
+
     def test_basic_types(self) -> None:
         schema = ObjectSchema.parse_obj(
             {
@@ -44,8 +54,9 @@ class Test_create_class_def(unittest.TestCase):
             }
         )
 
-        assert self._get_class_str(schema) == textwrap.dedent(
-            """\
+        self.assert_class_str(
+            schema,
+            """
             class Foo(TypedDict):
                 required_boolean: bool
                 boolean: NotRequired[bool]
@@ -60,7 +71,8 @@ class Test_create_class_def(unittest.TestCase):
                 required_ref: Bar
                 ref: NotRequired[Bar]
                 required_string: str
-                string: NotRequired[str]"""
+                string: NotRequired[str]
+            """,
         )
 
     def test_array(self) -> None:
@@ -112,22 +124,23 @@ class Test_create_class_def(unittest.TestCase):
             }
         )
 
-        assert self._get_class_str(schema) == textwrap.dedent(
-            """\
+        self.assert_class_str(
+            schema,
+            """
             class Foo(TypedDict):
                 required_array_of_integers: list[int]
                 array_of_integers: NotRequired[list[int]]
                 array_of_integers_and_strings: NotRequired[list[Union[int, str]]]
                 array_of_multi_type: NotRequired[list[Union[float, None]]]
                 array_of_integers_and_multi_type: NotRequired[list[Union[int, float, None]]]
-                array_of_refs: NotRequired[list[Bar]]"""
+                array_of_refs: NotRequired[list[Bar]]
+            """,
         )
 
-    def test_all_of_keyword(self) -> None:
+    def test_all_of_refs(self) -> None:
         """
-        The `allOf` keyword should be treated like multiple inheritence
-
-        https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-00#section-10.2.1.1
+        When `allOf` contains only refs, then it should be treated as
+        multiple-inheritence
         """
 
         schema = ObjectSchema.parse_obj(
@@ -141,15 +154,56 @@ class Test_create_class_def(unittest.TestCase):
             }
         )
 
-        assert self._get_class_str(schema) == textwrap.dedent(
-            """\
+        self.assert_class_str(
+            schema,
+            """
             class Vehicle(Bicycle, Car):
-                pass"""
+                pass
+            """,
         )
 
-    def test_any_of_keyword(self) -> None:
+    def test_all_of(self) -> None:
         """
-        The `anyOf` keyword should be treated like a union
+        For an `allOf` schema, its ref subschemas should become parent classes
+        and its object subschemas should be merged
+        """
+
+        schema = ObjectSchema.parse_obj(
+            {
+                "id": "#Foo",
+                "type": "object",
+                "allOf": [
+                    {"ref": "#Bar"},
+                    {"ref": "#Baz"},
+                    {
+                        "type": "object",
+                        "properties": {
+                            "a": {"type": "integer"},
+                        },
+                    },
+                    {
+                        "type": "object",
+                        "properties": {
+                            "b": {"type": "integer"},
+                        },
+                        "required": ["b"],
+                    },
+                ],
+            }
+        )
+
+        self.assert_class_str(
+            schema,
+            """
+            class Foo(Bar, Baz):
+                a: NotRequired[int]
+                b: int
+            """,
+        )
+
+    def test_any_of_property(self) -> None:
+        """
+        An `anyOf` property should be treated like a union
 
         https://datatracker.ietf.org/doc/html/draft-bhutton-json-schema-00#section-10.2.1.2
         """
@@ -190,13 +244,15 @@ class Test_create_class_def(unittest.TestCase):
             }
         )
 
-        assert self._get_class_str(schema) == textwrap.dedent(
-            """\
+        self.assert_class_str(
+            schema,
+            """
             class Person(TypedDict):
                 height: Union[str, float, None]
                 width: NotRequired[Union[str, float, None]]
                 current_vehicle: Union[Bicycle, Car]
-                dream_vehicle: NotRequired[Union[Bicycle, Car]]"""
+                dream_vehicle: NotRequired[Union[Bicycle, Car]]
+            """,
         )
 
     def test_object_subschema(self) -> None:
@@ -231,11 +287,13 @@ class Test_create_class_def(unittest.TestCase):
             }
         )
 
-        assert self._get_class_str(schema) == textwrap.dedent(
-            """\
+        self.assert_class_str(
+            schema,
+            """
             class Foo(TypedDict):
                 object: NotRequired[dict]
-                array_of_objects: NotRequired[list[dict]]"""
+                array_of_objects: NotRequired[list[dict]]
+            """,
         )
 
     def test_inline_enum(self) -> None:
@@ -264,12 +322,14 @@ class Test_create_class_def(unittest.TestCase):
             }
         )
 
-        assert self._get_class_str(schema) == textwrap.dedent(
-            """\
+        self.assert_class_str(
+            schema,
+            """
             class Foo(TypedDict):
                 integers: NotRequired[Literal[1, 2]]
                 numbers: NotRequired[Literal[1.1, 1.2]]
-                strings: NotRequired[Literal['a', 'b']]"""
+                strings: NotRequired[Literal['a', 'b']]
+            """,
         )
 
     def test_multi_type(self) -> None:
@@ -285,8 +345,10 @@ class Test_create_class_def(unittest.TestCase):
             }
         )
 
-        assert self._get_class_str(schema) == textwrap.dedent(
-            """\
+        self.assert_class_str(
+            schema,
+            """
             class Foo(TypedDict):
-                a: NotRequired[Union[int, str]]"""
+                a: NotRequired[Union[int, str]]
+            """,
         )
