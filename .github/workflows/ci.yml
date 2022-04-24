@@ -1,7 +1,6 @@
 on: [push]
 jobs:
   typecheck:
-    needs: build
     runs-on: ubuntu-20.04
     steps:
       - name: Set up Python
