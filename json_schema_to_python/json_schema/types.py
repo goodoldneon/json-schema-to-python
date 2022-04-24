@@ -11,7 +11,7 @@ SchemaType = Literal[
 
 class _BaseSchema(base.BaseModel):
     id: str | None = None
-    type: SchemaType | list[SchemaType] | None
+    type: SchemaType | list[SchemaType] | None = None
 
     def get_schema_name(self) -> str:
         if self.id is None:
@@ -68,7 +68,7 @@ class ObjectSchema(_BaseSchema):
 
 
 class RootSchema(base.BaseModel):
-    properties: dict[str, ObjectSchema]
+    properties: dict[str, Schema]
 
 
 class StringSchema(_BaseSchema):
@@ -195,5 +195,6 @@ NullSchema.update_forward_refs()
 NumberSchema.update_forward_refs()
 ObjectSchema.update_forward_refs()
 Ref.update_forward_refs()
+RootSchema.update_forward_refs()
 StringSchema.update_forward_refs()
 _BaseSchema.update_forward_refs()

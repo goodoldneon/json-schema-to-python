@@ -1,6 +1,6 @@
 import ast
 
-from json_schema_to_model import json_schema
+from json_schema_to_python import json_schema
 from .types import AstName, convert_json_schema_type_to_ast_name
 from .union_node import create_union_node
 

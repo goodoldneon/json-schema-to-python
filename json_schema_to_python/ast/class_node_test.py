@@ -2,7 +2,7 @@ import ast
 import textwrap
 import unittest
 
-from json_schema_to_model.json_schema.types import ObjectSchema
+from json_schema_to_python.json_schema.types import ObjectSchema
 from .class_node import create_class_node
 
 

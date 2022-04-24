@@ -1,7 +1,7 @@
 import ast
 
-from json_schema_to_model import json_schema
-from json_schema_to_model.json_schema.types import Schema
+from json_schema_to_python import json_schema
+from json_schema_to_python.json_schema.types import Schema
 from .list_node import create_list
 from .literal_node import create_literal_node
 from .types import AstName, convert_json_schema_type_to_ast_name

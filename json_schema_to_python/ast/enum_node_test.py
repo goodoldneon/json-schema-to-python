@@ -2,7 +2,7 @@ import ast
 import textwrap
 import unittest
 
-from json_schema_to_model.json_schema.types import EnumableSchema, StringSchema
+from json_schema_to_python.json_schema.types import EnumableSchema, StringSchema
 from .enum_node import create_enum_node
 
 
@@ -27,7 +27,5 @@ class Test_create_enum_class_def(unittest.TestCase):
 
         assert self._get_class_str(schema) == textwrap.dedent(
             """\
-            class Foo(Enum):
-                a = 'a'
-                b = 'b'"""
+            Foo = Literal['a', 'b']"""
         )

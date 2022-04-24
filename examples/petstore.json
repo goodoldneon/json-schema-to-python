@@ -1,0 +1,29 @@
+{
+  "id": "#root",
+  "properties": {
+    "Pet": {
+      "id": "#Pet",
+      "required": ["id", "name", "species"],
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "name": {
+          "type": "string"
+        },
+        "tag": {
+          "type": "string"
+        },
+        "species": {
+          "$ref": "#Species"
+        }
+      }
+    },
+    "Species": {
+      "id": "#Species",
+      "type": "string",
+      "enum": ["cat", "dog"]
+    }
+  }
+}
