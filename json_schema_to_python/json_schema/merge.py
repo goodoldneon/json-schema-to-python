@@ -4,11 +4,9 @@ from typing import TypeVar
 from .types import (
     AnyOf,
     AnyOfSchema,
-    MultiTypeSchema,
     ObjectSchema,
-    Ref,
+    RefSchema,
     Schema,
-    SchemaType,
     get_schema_from_type,
 )
 
@@ -41,9 +39,9 @@ def _get_schema_intersection(a: Schema, b: Schema) -> Schema:
     """
 
     # Unable to resolve refs in this function
-    if isinstance(a, Ref):
+    if isinstance(a, RefSchema):
         raise Exception("cannot find intersection for a ref")
-    if isinstance(b, Ref):
+    if isinstance(b, RefSchema):
         raise Exception("cannot find intersection for a ref")
 
     if isinstance(a, AnyOfSchema):

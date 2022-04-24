@@ -8,22 +8,40 @@ from .module_node import create_module_node
 
 
 class Test_create_module_node(unittest.TestCase):
-    def _get_module_str(self, schemas: list[Schema]) -> str:
-        return ast.unparse(create_module_node(schemas))
+    def assert_module_str(self, schemas: list[Schema], expectation: str):
+        # Dedent until at least 1 line is unindented
+        expectation = textwrap.dedent(expectation)
+
+        # Remove leading and trailing newlines
+        expectation = expectation.strip()
+
+        class_def = create_module_node(schemas)
+        assert ast.unparse(class_def) == expectation
 
     def test_object_and_enum(self) -> None:
         schemas = [
             create_schema_from_dict(
                 {
-                    "id": "#Pet",
-                    "required": ["id", "name", "species"],
+                    "id": "#Animal",
                     "type": "object",
+                    "properties": {
+                        "is_adorable": {"type": "boolean"},
+                        "species": {"$ref": "#Species"},
+                        "weight": {"type": "number"},
+                    },
+                },
+            ),
+            create_schema_from_dict(
+                {
+                    "id": "#Pet",
+                    "type": "object",
+                    "$ref": "#Animal",
                     "properties": {
                         "id": {"type": "integer"},
                         "name": {"type": "string"},
-                        "tag": {"type": "string"},
-                        "species": {"$ref": "#Species"},
+                        "toys": {"type": "array", "items": [{"ref": "#Toy"}]},
                     },
+                    "required": ["id", "is_adorable", "name", "species", "toys"],
                 },
             ),
             create_schema_from_dict(
@@ -33,19 +51,35 @@ class Test_create_module_node(unittest.TestCase):
                     "enum": ["cat", "dog"],
                 },
             ),
+            create_schema_from_dict(
+                {
+                    "id": "#Toy",
+                    "type": "object",
+                    "properties": {"is_squeeky": {"type": "boolean"}},
+                },
+            ),
         ]
 
-        assert self._get_module_str(schemas) == textwrap.dedent(
-            """\
+        self.assert_module_str(
+            schemas,
+            """
             from __future__ import annotations
             from enum import Enum
             from typing import Literal, TypedDict, Union
             from typing_extensions import NotRequired
 
-            class Pet(TypedDict):
+            class Animal(TypedDict):
+                is_adorable: NotRequired[bool]
+                species: NotRequired[Species]
+                weight: NotRequired[float]
+
+            class Pet(Animal):
                 id: int
                 name: str
-                tag: NotRequired[str]
-                species: Species
-            Species = Literal['cat', 'dog']"""
+                toys: list[Toy]
+
+            class Toy(TypedDict):
+                is_squeeky: NotRequired[bool]
+            Species = Literal['cat', 'dog']
+            """,
         )

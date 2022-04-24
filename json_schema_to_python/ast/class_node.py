@@ -13,15 +13,23 @@ def create_class_node(
     """
 
     if schema.allOf:
-        return _create_class_node_using_all_of(schema)
+        class_def = _create_class_node_using_all_of(schema)
+    else:
+        class_def = ast.ClassDef(
+            bases=[AstName.TypedDict],
+            body=[],
+            decorator_list=[],
+            keywords=[],
+            name=schema.get_schema_name(),
+        )
 
-    class_def = ast.ClassDef(
-        bases=[AstName.TypedDict],
-        body=[],
-        decorator_list=[],
-        keywords=[],
-        name=schema.get_schema_name(),
-    )
+    if schema.ref:
+        # Since we'll be extending another class, we no longer want to extend
+        # TypedDict
+        if class_def.bases == [AstName.TypedDict]:
+            class_def.bases = []
+
+        class_def.bases.append(ast.Name(id=schema.ref.get_schema_name()))
 
     for k, v in schema.properties.items():
         class_def.body.append(
@@ -69,7 +77,7 @@ def _create_class_node_using_all_of(
     subschemas_to_merge: list[json_schema.types.ObjectSchema] = []
 
     for subschema in subschemas:
-        if isinstance(subschema, json_schema.types.Ref):
+        if isinstance(subschema, json_schema.types.RefSchema):
             bases.append(ast.Name(id=subschema.get_schema_name()))
         elif isinstance(subschema, json_schema.types.ObjectSchema):
             subschemas_to_merge.append(subschema)

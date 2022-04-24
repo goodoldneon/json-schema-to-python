@@ -63,6 +63,7 @@ class NumberSchema(_BaseSchema):
 class ObjectSchema(_BaseSchema):
     allOf: AllOf | None = None
     properties: dict[str, Schema] = {}
+    ref: RefValue | None = base.Field(alias="$ref", default=None)
     required: list[str] = []
     type: Literal["object"]
 
@@ -76,18 +77,19 @@ class StringSchema(_BaseSchema):
     type: Literal["string"]
 
 
-class Ref(base.BaseModel):
-    ref: str = base.Field(alias="$ref")
+class RefSchema(base.BaseModel):
+    ref: RefValue = base.Field(alias="$ref")
+    type: None = None
 
     class Config:
         allow_population_by_field_name = True
 
     def get_schema_name(self) -> str:
-        return self.ref.split("#")[-1]
+        return self.ref.__root__.split("#")[-1]
 
 
 Schema = (
-    Ref
+    RefSchema
     | AnyOfSchema
     | AllOfSchema
     | ArraySchema
@@ -166,11 +168,11 @@ def is_list_of_schemas(
     return True
 
 
-def is_list_of_refs(
+def is_list_of_ref_schemas(
     value: list,
-) -> TypeGuard[list[Ref]]:
+) -> TypeGuard[list[RefSchema]]:
     for item in value:
-        if isinstance(item, Ref) is False:
+        if isinstance(item, RefSchema) is False:
             return False
 
     return True
@@ -187,11 +189,18 @@ def is_list_of_schema_types(
 
 
 class AllOf(base.BaseModel):
-    __root__: list[ObjectSchema | Ref]
+    __root__: list[ObjectSchema | RefSchema]
 
 
 class AnyOf(base.BaseModel):
     __root__: list[Schema]
+
+
+class RefValue(base.BaseModel):
+    __root__: str
+
+    def get_schema_name(self) -> str:
+        return self.__root__.split("#")[-1]
 
 
 AllOf.update_forward_refs()
@@ -204,7 +213,7 @@ IntegerSchema.update_forward_refs()
 NullSchema.update_forward_refs()
 NumberSchema.update_forward_refs()
 ObjectSchema.update_forward_refs()
-Ref.update_forward_refs()
+RefSchema.update_forward_refs()
 RootSchema.update_forward_refs()
 StringSchema.update_forward_refs()
 _BaseSchema.update_forward_refs()

@@ -44,7 +44,7 @@ def _get_type_value(
         type_value = create_union_node(schema.anyOf.__root__)
     elif isinstance(schema, json_schema.types.MultiTypeSchema):
         type_value = create_union_node(schema.type)
-    elif isinstance(schema, json_schema.types.Ref):
+    elif isinstance(schema, json_schema.types.RefSchema):
         type_value = ast.Name(id=schema.get_schema_name())
     else:
         if json_schema.types.is_enumable_schema(schema):

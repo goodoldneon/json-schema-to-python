@@ -7,10 +7,6 @@ from .class_node import create_class_node
 
 
 class Test_create_class_def(unittest.TestCase):
-    def _get_class_str(self, schema: ObjectSchema) -> str:
-        class_def = create_class_node(schema)
-        return ast.unparse(class_def)
-
     def assert_class_str(self, schema: ObjectSchema, expectation: str):
         # Dedent until at least 1 line is unindented
         expectation = textwrap.dedent(expectation)
@@ -341,7 +337,11 @@ class Test_create_class_def(unittest.TestCase):
             {
                 "id": "#Foo",
                 "type": "object",
-                "properties": {"a": {"type": ["integer", "string"]}},
+                "properties": {
+                    "a": {
+                        "type": ["integer", "string"],
+                    },
+                },
             }
         )
 
@@ -349,6 +349,32 @@ class Test_create_class_def(unittest.TestCase):
             schema,
             """
             class Foo(TypedDict):
+                a: NotRequired[Union[int, str]]
+            """,
+        )
+
+    def test_extend_with_properties(self) -> None:
+        """
+        Extend another class and also specify properties
+        """
+
+        schema = ObjectSchema.parse_obj(
+            {
+                "id": "#Foo",
+                "type": "object",
+                "$ref": "#Bar",
+                "properties": {
+                    "a": {
+                        "type": ["integer", "string"],
+                    },
+                },
+            }
+        )
+
+        self.assert_class_str(
+            schema,
+            """
+            class Foo(Bar):
                 a: NotRequired[Union[int, str]]
             """,
         )

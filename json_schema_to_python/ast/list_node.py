@@ -67,7 +67,7 @@ def create_list(schema: json_schema.types.ArraySchema) -> ast.Subscript:
             """
 
             raise NotImplementedError("nested anyOf")
-        elif isinstance(subschema, json_schema.types.Ref):
+        elif isinstance(subschema, json_schema.types.RefSchema):
             """
             Example:
 
