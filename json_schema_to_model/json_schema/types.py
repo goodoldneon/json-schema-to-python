@@ -1,7 +1,7 @@
 from __future__ import annotations
-from typing import Any, get_args, Literal, Type, TypeGuard, TypeVar
+from typing import Any, get_args, Literal, TypeGuard
 
-import pydantic
+from . import base
 
 
 SchemaType = Literal[
@@ -9,7 +9,7 @@ SchemaType = Literal[
 ]
 
 
-class _BaseSchema(pydantic.BaseModel):
+class _BaseSchema(base.BaseModel):
     id: str | None = None
     type: SchemaType | list[SchemaType] | None
 
@@ -61,7 +61,7 @@ class ObjectSchema(_BaseSchema):
     type: Literal["object"]
 
 
-class RootSchema(pydantic.BaseModel):
+class RootSchema(base.BaseModel):
     properties: dict[str, ObjectSchema]
 
 
@@ -70,8 +70,8 @@ class StringSchema(_BaseSchema):
     type: Literal["string"]
 
 
-class Ref(pydantic.BaseModel):
-    ref: str = pydantic.Field(alias="$ref")
+class Ref(base.BaseModel):
+    ref: str = base.Field(alias="$ref")
 
     class Config:
         allow_population_by_field_name = True
@@ -93,6 +93,30 @@ Schema = (
 EnumableSchema = IntegerSchema | NumberSchema | StringSchema
 
 
+def create_schema_from_dict(value: dict) -> Schema:
+    for schema_class in get_args(Schema):
+        try:
+            return schema_class.parse_obj(value)
+        except Exception:
+            continue
+
+    raise Exception("no schema found")
+
+
+def get_schema_from_type(type: SchemaType) -> Schema:
+    """
+    Get a schema object from a schema type string
+    """
+
+    for schema_class in get_args(Schema):
+        try:
+            return schema_class(type=type)
+        except Exception:
+            continue
+
+    raise Exception(f"no schema found for type {type}")
+
+
 def is_enumable_schema(value: Schema) -> TypeGuard[EnumableSchema]:
     return getattr(value, "enum", None) is not None
 
@@ -105,6 +129,22 @@ def is_schema(value: Any) -> TypeGuard[Schema]:
             return True
 
     return False
+
+
+def is_list_of_object_schemas(
+    value: list,
+) -> TypeGuard[list[ObjectSchema]]:
+    """
+    TODO: Make this function accept accept a generic that lets it check for
+    arbitrary schemas. Need to wait for a Mypy bug fix:
+    https://github.com/python/mypy/pull/11797
+    """
+
+    for item in value:
+        if is_schema(item) is False:
+            return False
+
+    return True
 
 
 def is_list_of_schemas(
@@ -127,11 +167,11 @@ def is_list_of_schema_types(
     return True
 
 
-class AllOf(pydantic.BaseModel):
+class AllOf(base.BaseModel):
     __root__: list[Ref]
 
 
-class AnyOf(pydantic.BaseModel):
+class AnyOf(base.BaseModel):
     __root__: list[Schema]
 
 
