@@ -1,7 +1,7 @@
 import ast
 
-from json_schema_to_model import json_schema
-from json_schema_to_model.json_schema.types import (
+from json_schema_to_python import json_schema
+from json_schema_to_python.json_schema.types import (
     is_list_of_schemas,
     is_list_of_schema_types,
     SchemaType,

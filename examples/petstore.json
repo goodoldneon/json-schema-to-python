@@ -1,0 +1,45 @@
+{
+  "id": "#root",
+  "properties": {
+    "Pet": {
+      "id": "#Pet",
+      "type": "object",
+      "properties": {
+        "id": {
+          "type": "integer"
+        },
+        "is_adorable": {
+          "type": "boolean"
+        },
+        "name": {
+          "type": "string"
+        },
+        "species": {
+          "$ref": "#Species"
+        },
+        "toys": {
+          "type": "array",
+          "items": [{ "ref": "#Toy" }]
+        },
+        "weight": {
+          "type": "number"
+        }
+      },
+      "required": ["id", "is_adorable", "name", "species", "toys"]
+    },
+    "Toy": {
+      "id": "#Toy",
+      "type": "object",
+      "properties": {
+        "is_squeeky": {
+          "type": "boolean"
+        }
+      }
+    },
+    "Species": {
+      "id": "#Species",
+      "type": "string",
+      "enum": ["cat", "dog"]
+    }
+  }
+}

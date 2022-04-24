@@ -2,6 +2,7 @@ import ast
 
 
 class AstName:
+    annotations = ast.Name(id="annotations")
     bool = ast.Name(id="bool")
     dict = ast.Name(id="dict")
     Enum = ast.Name(id="Enum")

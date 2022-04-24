@@ -1,6 +1,6 @@
 import ast
 
-from json_schema_to_model import json_schema
+from json_schema_to_python import json_schema
 from .types import AstName
 
 

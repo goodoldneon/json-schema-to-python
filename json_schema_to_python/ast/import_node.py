@@ -9,6 +9,12 @@ def create_import_nodes() -> list[ast.ImportFrom]:
     even if they aren't used.
     """
 
+    future_import = ast.ImportFrom(
+        level=0,
+        module="__future__",
+        names=[AstName.annotations],
+    )
+
     enum_import = ast.ImportFrom(
         level=0,
         module="enum",
@@ -19,6 +25,7 @@ def create_import_nodes() -> list[ast.ImportFrom]:
         level=0,
         module="typing",
         names=[
+            AstName.Literal,
             AstName.TypedDict,
             AstName.Union,
         ],
@@ -30,4 +37,4 @@ def create_import_nodes() -> list[ast.ImportFrom]:
         names=[AstName.NotRequired],
     )
 
-    return [enum_import, typing_import, typing_extensions_import]
+    return [future_import, enum_import, typing_import, typing_extensions_import]
