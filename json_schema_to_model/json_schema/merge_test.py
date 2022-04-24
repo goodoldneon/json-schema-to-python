@@ -59,7 +59,7 @@ class Test_merge_schemas(unittest.TestCase):
 
         self.assert_merge_schemas(schemas, expectation)
 
-    def test_overlap_any_of(self) -> None:
+    def test_any_of_overlap(self) -> None:
         """
         Multi-type properties should have all of their types considered
         """
@@ -116,7 +116,92 @@ class Test_merge_schemas(unittest.TestCase):
 
         self.assert_merge_schemas(schemas, expectation)
 
-    def test_overlap_multi_type(self) -> None:
+    def test_enum_overlap(self) -> None:
+        """
+        Overlapping enums end up as a non-enum
+        """
+
+        schemas = [
+            create_schema_from_dict(
+                {
+                    "type": "object",
+                    "properties": {
+                        "a": {
+                            "type": "string",
+                            "enum": ["a", "b"],
+                        },
+                    },
+                }
+            ),
+            create_schema_from_dict(
+                {
+                    "type": "object",
+                    "properties": {
+                        "a": {
+                            "type": "string",
+                            "enum": ["b", "c"],
+                        },
+                    },
+                }
+            ),
+        ]
+
+        expectation = {
+            "type": "object",
+            "properties": {
+                "a": {"type": "string"},
+            },
+        }
+
+        self.assert_merge_schemas(schemas, expectation)
+
+    def test_enum_no_overlap(self) -> None:
+        """
+        Non-overlapping enums are untouched
+        """
+
+        schemas = [
+            create_schema_from_dict(
+                {
+                    "type": "object",
+                    "properties": {
+                        "a": {
+                            "type": "string",
+                            "enum": ["a", "b"],
+                        },
+                    },
+                }
+            ),
+            create_schema_from_dict(
+                {
+                    "type": "object",
+                    "properties": {
+                        "b": {
+                            "type": "string",
+                            "enum": ["b", "c"],
+                        },
+                    },
+                }
+            ),
+        ]
+
+        expectation = {
+            "type": "object",
+            "properties": {
+                "a": {
+                    "type": "string",
+                    "enum": ["a", "b"],
+                },
+                "b": {
+                    "type": "string",
+                    "enum": ["b", "c"],
+                },
+            },
+        }
+
+        self.assert_merge_schemas(schemas, expectation)
+
+    def test_multi_type_overlap(self) -> None:
         """
         Multi-type properties should have all of their types considered
         """
