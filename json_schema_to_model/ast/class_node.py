@@ -1,7 +1,6 @@
 import ast
 
 from json_schema_to_model import json_schema
-from json_schema_to_model.json_schema.utils import convert_schema_id_to_name
 from .attribute_node import get_attribute_node
 from .types import AstName
 
@@ -13,9 +12,6 @@ def create_class_node(
     Create a `Class` AST node for a model
     """
 
-    assert schema.id is not None
-    name = convert_schema_id_to_name(schema.id)
-
     if schema.allOf:
         return _create_class_node_using_all_of(schema)
 
@@ -24,7 +20,7 @@ def create_class_node(
         body=[],
         decorator_list=[],
         keywords=[],
-        name=name,
+        name=schema.get_schema_name(),
     )
 
     for k, v in schema.properties.items():
@@ -66,14 +62,12 @@ def _create_class_node_using_all_of(
     assert schema.allOf is not None
     assert schema.id is not None
 
-    bases = [
-        ast.Name(id=convert_schema_id_to_name(s.ref)) for s in schema.allOf.__root__
-    ]
+    bases = [ast.Name(id=s.get_schema_name()) for s in schema.allOf.__root__]
 
     return ast.ClassDef(
         bases=bases,
         body=[ast.Pass()],
         decorator_list=[],
         keywords=[],
-        name=convert_schema_id_to_name(schema.id),
+        name=schema.get_schema_name(),
     )

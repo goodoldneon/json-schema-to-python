@@ -2,7 +2,6 @@ import ast
 
 from json_schema_to_model import json_schema
 from json_schema_to_model.json_schema.types import Schema
-from json_schema_to_model.json_schema.utils import convert_schema_id_to_name
 from .list_node import create_list
 from .literal_node import create_literal_node
 from .types import AstName, convert_json_schema_type_to_ast_name
@@ -46,7 +45,7 @@ def _get_type_value(
     elif isinstance(schema, json_schema.types.MultiTypeSchema):
         type_value = create_union_node(schema.type)
     elif isinstance(schema, json_schema.types.Ref):
-        type_value = ast.Name(id=convert_schema_id_to_name(schema.ref))
+        type_value = ast.Name(id=schema.get_schema_name())
     else:
         if json_schema.types.is_enumable_schema(schema):
             type_value = create_literal_node(schema)

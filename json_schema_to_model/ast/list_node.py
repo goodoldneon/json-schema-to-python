@@ -1,7 +1,6 @@
 import ast
 
 from json_schema_to_model import json_schema
-from json_schema_to_model.json_schema.utils import convert_schema_id_to_name
 from .types import AstName, convert_json_schema_type_to_ast_name
 from .union_node import create_union_node
 
@@ -77,7 +76,7 @@ def create_list(schema: json_schema.types.ArraySchema) -> ast.Subscript:
             ```
             """
 
-            slice = ast.Name(id=convert_schema_id_to_name(subschema.ref))
+            slice = ast.Name(id=subschema.get_schema_name())
         elif isinstance(subschema.type, list):
             """
             Example:

@@ -13,6 +13,12 @@ class _BaseSchema(base.BaseModel):
     id: str | None = None
     type: SchemaType | list[SchemaType] | None
 
+    def get_schema_name(self) -> str:
+        if self.id is None:
+            raise Exception("missing id")
+
+        return self.id.split("#")[-1]
+
 
 class AllOfSchema(_BaseSchema):
     allOf: AllOf
@@ -75,6 +81,9 @@ class Ref(base.BaseModel):
 
     class Config:
         allow_population_by_field_name = True
+
+    def get_schema_name(self) -> str:
+        return self.ref.split("#")[-1]
 
 
 Schema = (
