@@ -3,20 +3,36 @@
   "properties": {
     "Pet": {
       "id": "#Pet",
-      "required": ["id", "name", "species"],
       "type": "object",
       "properties": {
         "id": {
           "type": "integer"
         },
-        "name": {
-          "type": "string"
+        "is_adorable": {
+          "type": "boolean"
         },
-        "tag": {
+        "name": {
           "type": "string"
         },
         "species": {
           "$ref": "#Species"
+        },
+        "toys": {
+          "type": "array",
+          "items": [{ "ref": "#Toy" }]
+        },
+        "weight": {
+          "type": "number"
+        }
+      },
+      "required": ["id", "is_adorable", "name", "species", "toys"]
+    },
+    "Toy": {
+      "id": "#Toy",
+      "type": "object",
+      "properties": {
+        "is_squeeky": {
+          "type": "boolean"
         }
       }
     },
