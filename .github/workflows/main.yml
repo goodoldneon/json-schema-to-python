@@ -1,0 +1,7 @@
+on: [push]
+jobs:
+  utest:
+    runs-on: ubuntu-20.04
+    steps:
+      - name: Print Python version
+        run: python --version
