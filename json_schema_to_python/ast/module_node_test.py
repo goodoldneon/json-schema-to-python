@@ -37,8 +37,9 @@ class Test_create_module_node(unittest.TestCase):
 
         assert self._get_module_str(schemas) == textwrap.dedent(
             """\
+            from __future__ import annotations
             from enum import Enum
-            from typing import TypedDict, Union
+            from typing import Literal, TypedDict, Union
             from typing_extensions import NotRequired
 
             class Pet(TypedDict):
