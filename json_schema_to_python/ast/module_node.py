@@ -17,9 +17,7 @@ def create_module_node(model_schemas: list[Schema]) -> ast.Module:
     ]
 
     enum_nodes = [
-        create_enum_node(schema)
-        for schema in model_schemas
-        if is_enum(schema)
+        create_enum_node(schema) for schema in model_schemas if is_enum(schema)
     ]
 
     return ast.Module(
