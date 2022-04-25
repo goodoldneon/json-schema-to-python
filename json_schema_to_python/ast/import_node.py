@@ -26,7 +26,6 @@ def create_import_nodes() -> list[ast.ImportFrom]:
         module="typing",
         names=[
             AstName.Literal,
-            AstName.TypedDict,
             AstName.Union,
         ],
     )
@@ -34,7 +33,10 @@ def create_import_nodes() -> list[ast.ImportFrom]:
     typing_extensions_import = ast.ImportFrom(
         level=0,
         module="typing_extensions",
-        names=[AstName.NotRequired],
+        names=[
+            AstName.NotRequired,
+            AstName.TypedDict,
+        ],
     )
 
     return [future_import, enum_import, typing_import, typing_extensions_import]

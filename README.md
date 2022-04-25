@@ -19,8 +19,8 @@ Will generate this Python code:
 ```py
 from __future__ import annotations
 from enum import Enum
-from typing import Literal, TypedDict, Union
-from typing_extensions import NotRequired
+from typing import Literal, Union
+from typing_extensions import NotRequired, TypedDict
 
 
 class Animal(TypedDict):
