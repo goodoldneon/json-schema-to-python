@@ -36,7 +36,7 @@ class Pet(Animal):
 
 
 class Toy(TypedDict):
-    is_squeeky: NotRequired[bool]
+    is_squeaky: NotRequired[bool]
 
 
 Species = Literal["cat", "dog"]
@@ -90,7 +90,7 @@ From this JSON Schema:
       "id": "#Toy",
       "type": "object",
       "properties": {
-        "is_squeeky": {
+        "is_squeaky": {
           "type": "boolean"
         }
       }

@@ -55,7 +55,7 @@ class Test_create_module_node(unittest.TestCase):
                 {
                     "id": "#Toy",
                     "type": "object",
-                    "properties": {"is_squeeky": {"type": "boolean"}},
+                    "properties": {"is_squeaky": {"type": "boolean"}},
                 },
             ),
         ]
@@ -79,7 +79,7 @@ class Test_create_module_node(unittest.TestCase):
                 toys: list[Toy]
 
             class Toy(TypedDict):
-                is_squeeky: NotRequired[bool]
+                is_squeaky: NotRequired[bool]
             Species = Literal['cat', 'dog']
             """,
         )

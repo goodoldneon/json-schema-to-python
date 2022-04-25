@@ -43,7 +43,7 @@
       "id": "#Toy",
       "type": "object",
       "properties": {
-        "is_squeeky": {
+        "is_squeaky": {
           "type": "boolean"
         }
       }
