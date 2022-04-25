@@ -47,7 +47,7 @@ def _get_type_value(
     elif isinstance(schema, json_schema.types.TypelessSchema):
         type_value = ast.Name(id=schema.get_schema_name())
     else:
-        if json_schema.types.is_enumable_schema(schema):
+        if json_schema.types.is_enum(schema):
             type_value = create_literal_node(schema)
         else:
             type_value = convert_json_schema_type_to_ast_name(schema.type)

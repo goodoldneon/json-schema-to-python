@@ -1,5 +1,5 @@
 import json
-from .types import AnyOf, RootSchema, Schema
+from .types import AnyOfValue, RootSchema, Schema
 
 
 def _load_json_schema(path: str) -> RootSchema:
@@ -12,7 +12,7 @@ def load_model_schemas(path: str) -> list[Schema]:
 
     schemas: list[Schema] = []
     for schema in full_schema.properties.values():
-        if isinstance(schema, AnyOf):
+        if isinstance(schema, AnyOfValue):
             raise Exception("anyOf cannot be in the root schema")
 
         schemas.append(schema)

@@ -4,11 +4,6 @@ from typing import Any, get_args, Literal, TypeGuard
 from . import base
 
 
-SchemaType = Literal[
-    "array", "boolean", "integer", "object", "null", "number", "string"
-]
-
-
 class _BaseSchema(base.BaseModel):
     id: str | None = None
     ref: RefValue | None = base.Field(alias="$ref", default=None)
@@ -22,12 +17,12 @@ class _BaseSchema(base.BaseModel):
 
 
 class AllOfSchema(_BaseSchema):
-    allOf: AllOf
+    allOf: AllOfValue
     type: Literal["object"] | None = None
 
 
 class AnyOfSchema(_BaseSchema):
-    anyOf: AnyOf
+    anyOf: AnyOfValue
     type: Literal["object"] | None = None
 
 
@@ -62,7 +57,7 @@ class NumberSchema(_BaseSchema):
 
 
 class ObjectSchema(_BaseSchema):
-    allOf: AllOf | None = None
+    allOf: AllOfValue | None = None
     properties: dict[str, Schema] = {}
     required: list[str] = []
     type: Literal["object"]
@@ -88,6 +83,10 @@ class TypelessSchema(base.BaseModel):
         return self.ref.__root__.split("#")[-1]
 
 
+SchemaType = Literal[
+    "array", "boolean", "integer", "object", "null", "number", "string"
+]
+
 Schema = (
     AllOfSchema
     | AnyOfSchema
@@ -101,6 +100,7 @@ Schema = (
     | StringSchema
     | TypelessSchema
 )
+
 EnumableSchema = IntegerSchema | NumberSchema | StringSchema
 
 
@@ -128,7 +128,7 @@ def get_schema_from_type(type: SchemaType) -> Schema:
     raise Exception(f"no schema found for type {type}")
 
 
-def is_enumable_schema(value: Schema) -> TypeGuard[EnumableSchema]:
+def is_enum(value: Schema) -> TypeGuard[EnumableSchema]:
     return getattr(value, "enum", None) is not None
 
 
@@ -178,11 +178,11 @@ def is_list_of_schema_types(
     return True
 
 
-class AllOf(base.BaseModel):
+class AllOfValue(base.BaseModel):
     __root__: list[ObjectSchema | TypelessSchema]
 
 
-class AnyOf(base.BaseModel):
+class AnyOfValue(base.BaseModel):
     __root__: list[Schema]
 
 
@@ -193,9 +193,9 @@ class RefValue(base.BaseModel):
         return self.__root__.split("#")[-1]
 
 
-AllOf.update_forward_refs()
+AllOfValue.update_forward_refs()
 AllOfSchema.update_forward_refs()
-AnyOf.update_forward_refs()
+AnyOfValue.update_forward_refs()
 AnyOfSchema.update_forward_refs()
 ArraySchema.update_forward_refs()
 BooleanSchema.update_forward_refs()

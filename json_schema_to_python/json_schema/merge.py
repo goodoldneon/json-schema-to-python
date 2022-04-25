@@ -2,7 +2,6 @@ import copy
 from typing import TypeVar
 
 from .types import (
-    AnyOf,
     AnyOfSchema,
     ObjectSchema,
     Schema,
@@ -68,11 +67,7 @@ def _get_schema_intersection(a: Schema, b: Schema) -> Schema:
     elif len(types) == 1:
         return types[0]
     else:
-        return AnyOfSchema(
-            anyOf=AnyOf(
-                __root__=types,
-            ),
-        )
+        return AnyOfSchema.parse_obj({"anyOf": types})
 
 
 T = TypeVar("T")
