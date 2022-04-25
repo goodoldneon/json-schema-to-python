@@ -98,3 +98,93 @@ From this JSON Schema:
   }
 }
 ```
+
+## Known Limitations
+
+### `id` is required
+
+This is primarily to simplify the library. It isn't impossible to avoid using `id`, but the extra complexity doesn't seem worthwhile.
+
+The primary reason for this decision is to avoid messy class name issues. For example, if you had schemas in `#properties/foo/Thing` and `#properties/bar/Thing` then what would you call each? `FooThing` and `BarThing`? And what would happen if you had another schema whose `id` was already `FooThing`? Adding class name magic is a can of worms, so it seems best to avoid it by using explicit class names via `id`.
+
+### Nested `object` schemas just become type `dict`
+
+This is because Mypy doesn't support anonymous `TypedDict`s (see [this discussion](https://github.com/python/mypy/issues/9884)).
+
+If we had this schema:
+
+```json
+{
+  "id": "#root",
+  "properties": {
+    "Foo": {
+      "properties": {
+        "bar": {
+          "type": "object",
+          "properties": {
+            "baz": { "type": "integer" }
+          }
+        }
+      }
+    }
+  }
+}
+```
+
+Then it'd be nice to generate something like this:
+
+```py
+Foo = TypedDict(
+    {
+        "bar": {
+            {"baz": int},
+        },
+    },
+)
+```
+
+But that's impossible right now.
+
+### `additionalProperties` is ignored
+
+This is because `TypedDict` has spotty support "extra" keys during dict creation (see [this discussion](https://github.com/python/mypy/issues/4617)). Sometimes Mypy is OK with extra keys and sometimes it isn't:
+
+```py
+class Foo(TypedDict):
+    a: int
+
+class Bar(TypedDict):
+    a: int
+    b: int
+
+# Mypy error when declaring a dict with extra keys
+foo: Foo = {"a": 1, "b": 2}
+
+bar: Bar = {"a": 1, "b": 2}
+
+def stuff(value: Foo) -> None:
+    pass
+
+# No Mypy error when passing a dict variable with extra keys
+stuff(bar)
+
+# Mypy error when passing an anonymous dict with extra keys
+stuff({"a": 1, "b": 2})
+```
+
+### JSON Schema enums become Python `Literal`s (not `Enum`s)
+
+This is because Python `Enum` members are actually objects and not primitives:
+
+```
+>>> from enum import Enum
+>>> class Foo(Enum):
+...     a = "a"
+...
+>>> Foo.a
+<Foo.a: 'a'>
+>>> Foo.a.value
+'a'
+```
+
+That won't match your runtime data if you just did a `json.loads` on a request body.
