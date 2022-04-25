@@ -1,4 +1,5 @@
 import argparse
+import logging
 
 import black
 
@@ -20,15 +21,21 @@ parser.add_argument(
     required=True,
 )
 parser.add_argument("--output", "-o", help="Output Python file path")
+parser.add_argument(
+    "--silent",
+    help="Silence logging",
+    action="store_true",
+)
 
 
 def _main(
     *,
+    logger: logging.Logger,
     input_path: str,
     output_path: str | None = None,
     should_format: bool,
 ) -> None:
-    schemas = load_model_schemas(input_path)
+    schemas = load_model_schemas(logger, input_path)
     content = convert_schemas_to_file_content(schemas)
 
     if should_format:
@@ -43,8 +50,11 @@ def _main(
 
 def run_cli() -> None:
     args = parser.parse_args()
+    logger = logging.getLogger()
+    logger.disabled = args.silent
 
     _main(
+        logger=logger,
         input_path=args.input,
         output_path=args.output,
         should_format=args.no_format is not True,

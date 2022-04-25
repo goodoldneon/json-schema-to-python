@@ -72,7 +72,7 @@ class StringSchema(_BaseSchema):
     type: Literal["string"]
 
 
-class TypelessSchema(base.BaseModel):
+class TypelessSchema(_BaseSchema):
     ref: RefValue = base.Field(alias="$ref")
     type: None = None
 

@@ -1,5 +1,25 @@
 import json
+import logging
 from .types import AnyOfValue, RootSchema, Schema
+
+
+def _get_schemas_from_root_schema(
+    logger: logging.Logger,
+    root_schema: RootSchema,
+) -> list[Schema]:
+    schemas: list[Schema] = []
+    for schema in root_schema.properties.values():
+        if isinstance(schema, AnyOfValue):
+            logger.warn("skipping schema: is anyOf")
+            continue
+
+        if schema.id is None:
+            logger.warn("skipping schema: no id")
+            continue
+
+        schemas.append(schema)
+
+    return schemas
 
 
 def _load_json_schema(path: str) -> RootSchema:
@@ -7,14 +27,7 @@ def _load_json_schema(path: str) -> RootSchema:
         return RootSchema.parse_obj(json.loads(f.read()))
 
 
-def load_model_schemas(path: str) -> list[Schema]:
-    full_schema = _load_json_schema(path)
+def load_model_schemas(logger: logging.Logger, path: str) -> list[Schema]:
+    root_schema = _load_json_schema(path)
 
-    schemas: list[Schema] = []
-    for schema in full_schema.properties.values():
-        if isinstance(schema, AnyOfValue):
-            raise Exception("anyOf cannot be in the root schema")
-
-        schemas.append(schema)
-
-    return schemas
+    return _get_schemas_from_root_schema(logger, root_schema)
