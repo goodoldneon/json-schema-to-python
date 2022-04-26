@@ -101,12 +101,6 @@ From this JSON Schema:
 
 ## Known Limitations
 
-### `id` is required
-
-This is primarily to simplify the library. It isn't impossible to avoid using `id`, but the extra complexity doesn't seem worthwhile.
-
-The primary reason for this decision is to avoid messy class name issues. For example, if you had schemas in `#properties/foo/Thing` and `#properties/bar/Thing` then what would you call each? `FooThing` and `BarThing`? And what would happen if you had another schema whose `id` was already `FooThing`? Adding class name magic is a can of worms, so it seems best to avoid it by using explicit class names via `id`.
-
 ### Nested `object` schemas just become type `dict`
 
 This is because Mypy doesn't support anonymous `TypedDict`s (see [this discussion](https://github.com/python/mypy/issues/9884)).
@@ -188,3 +182,9 @@ This is because Python `Enum` members are actually objects and not primitives:
 ```
 
 That won't match your runtime data if you just did a `json.loads` on a request body.
+
+### `id` is required
+
+This is primarily to simplify the library. It isn't impossible to avoid using `id`, but the extra complexity doesn't seem worthwhile.
+
+The primary reason for this decision is to avoid messy class name issues. For example, if you had schemas in `#properties/foo/Thing` and `#properties/bar/Thing` then what would you call each? `FooThing` and `BarThing`? And what would happen if you had another schema whose `id` was already `FooThing`? Adding class name magic is a can of worms, so it seems best to avoid it by using explicit class names via `id`.
